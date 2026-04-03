@@ -16,6 +16,11 @@ const frontendPath = path.join(__dirname, "frontend")
 app.use(express.static(frontendPath))
 app.use("/models", express.static(path.join(frontendPath, "models")))
 
+// 🔥 CORREÇÃO AQUI (ROTA RAIZ)
+app.get("/", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"))
+})
+
 // ================= BANCO =================
 const dbPath = path.join(__dirname, "database.db")
 const db = new Database(dbPath)
