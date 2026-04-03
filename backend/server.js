@@ -15,6 +15,7 @@ const frontendPath = path.join(__dirname, "..", "frontend")
 
 app.use(express.static(frontendPath))
 app.use("/models", express.static(path.join(frontendPath, "models")))
+app.use("/faces", express.static(path.join(frontendPath, "faces")))
 
 // 🔥 CORREÇÃO AQUI (ROTA RAIZ)
 app.get("/", (req, res) => {
