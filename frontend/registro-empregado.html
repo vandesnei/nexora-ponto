@@ -160,7 +160,7 @@
                 let totalHoras = 0
 
                 // 🧠 2 BATIDAS
-                if (registrosDia.length >= 2 && !entrada2) {
+                if (registrosDia.length >= 2 && !entrada2 && entrada1 && saida1) {
 
                     let e = new Date(entrada1.data)
                     let s = new Date(saida1.data)
@@ -169,7 +169,7 @@
                 }
 
                 // 🧠 4 BATIDAS (ALMOÇO)
-                if (registrosDia.length >= 4) {
+                if (registrosDia.length >= 4 && entrada1 && saida1 && entrada2 && saida2) {
 
                     let e1 = new Date(entrada1.data)
                     let s1 = new Date(saida1.data)
@@ -197,7 +197,11 @@
                 let extra = saldo > 0 ? saldo.toFixed(2) : "-"
 
                 let entradaHora = entrada1 ? new Date(entrada1.data) : null
-                let saidaHora = saida2 ? new Date(saida2.data) : new Date(saida1.data)
+
+                // 🔥 CORREÇÃO (sem quebrar se não houver saída)
+                let saidaHora = saida2
+                    ? new Date(saida2.data)
+                    : (saida1 ? new Date(saida1.data) : null)
 
                 tabela.innerHTML += `
                 <tr>
