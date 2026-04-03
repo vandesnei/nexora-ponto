@@ -15,9 +15,21 @@ const frontendPath = path.join(__dirname, "..", "frontend")
 
 app.use(express.static(frontendPath))
 app.use("/models", express.static(path.join(frontendPath, "models")))
+
+// 🔥 ROTA JSON (ANTES DA ESTÁTICA)
+app.get("/faces", (req, res) => {
+    try {
+        const lista = db.prepare("SELECT id, nome FROM empregados").all()
+        res.json(lista)
+    } catch (err) {
+        res.status(500).send("Erro")
+    }
+})
+
+// 🔥 ROTA DE IMAGENS
 app.use("/faces", express.static(path.join(frontendPath, "faces")))
 
-// 🔥 CORREÇÃO AQUI (ROTA RAIZ)
+// 🔥 ROTA RAIZ
 app.get("/", (req, res) => {
     res.sendFile(path.join(frontendPath, "index.html"))
 })
