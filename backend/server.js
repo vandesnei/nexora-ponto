@@ -1,5 +1,5 @@
 const express = require("express")
-const mysql = require("mysql2")
+const sqlite3 = require("sqlite3").verbose()
 const cors = require("cors")
 const path = require("path")
 const fs = require("fs")
@@ -8,7 +8,7 @@ const app = express()
 
 app.use(cors())
 
-// 🔥 LIMITE DE PAYLOAD (evita erro 413)
+// 🔥 LIMITE DE PAYLOAD
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ limit: "10mb", extended: true }))
 
@@ -18,22 +18,51 @@ const frontendPath = path.join(__dirname, "../frontend")
 app.use(express.static(frontendPath))
 app.use("/models", express.static(path.join(frontendPath, "models")))
 
-// ================= BANCO =================
-const db = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "nexora_ponto",
-    waitForConnections: true,
-    connectionLimit: 10
+// ================= BANCO SQLITE =================
+const dbPath = path.join(__dirname, "database.db")
+
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) console.log("❌ Erro banco:", err)
+    else console.log("✅ Banco SQLite conectado")
 })
 
-db.getConnection((err, conn) => {
-    if (err) console.log("❌ Erro banco:", err)
-    else {
-        console.log("✅ Banco conectado")
-        conn.release()
-    }
+// 🔥 CRIAR TABELAS AUTOMATICAMENTE
+db.serialize(() => {
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS empregados (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            matricula TEXT,
+            cargo TEXT,
+            foto TEXT
+        )
+    `)
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS registros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            empregado_id INTEGER,
+            data TEXT,
+            tipo TEXT
+        )
+    `)
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT,
+            senha TEXT
+        )
+    `)
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS config (
+            chave TEXT PRIMARY KEY,
+            valor TEXT
+        )
+    `)
+
 })
 
 // ================= LOGIN =================
@@ -44,12 +73,12 @@ app.post("/login", (req, res) => {
         return res.status(400).send("Usuário e senha obrigatórios")
     }
 
-    db.query(
+    db.get(
         "SELECT * FROM usuarios WHERE usuario=? AND senha=?",
         [usuario, senha],
         (err, result) => {
             if (err) return res.status(500).send("Erro no servidor")
-            if (result.length > 0) res.json(result[0])
+            if (result) res.json(result)
             else res.status(401).send("Login inválido")
         }
     )
@@ -59,7 +88,7 @@ app.post("/login", (req, res) => {
 
 // LISTAR
 app.get("/empregados", (req, res) => {
-    db.query("SELECT * FROM empregados", (err, result) => {
+    db.all("SELECT * FROM empregados", [], (err, result) => {
         if (err) return res.status(500).send("Erro ao buscar empregados")
         res.json(result)
     })
@@ -74,10 +103,10 @@ app.post("/empregados", (req, res) => {
         return res.status(400).send("Nome e matrícula são obrigatórios")
     }
 
-    db.query(
+    db.run(
         "INSERT INTO empregados (nome, matricula, cargo, foto) VALUES (?, ?, ?, ?)",
         [nome, matricula, cargo || null, foto || null],
-        (err, result) => {
+        function (err) {
 
             if (err) {
                 console.log(err)
@@ -86,7 +115,7 @@ app.post("/empregados", (req, res) => {
 
             res.json({
                 mensagem: "Empregado cadastrado",
-                id: result.insertId
+                id: this.lastID
             })
         }
     )
@@ -96,7 +125,7 @@ app.post("/empregados", (req, res) => {
 app.delete("/empregados/:id", (req, res) => {
     const { id } = req.params
 
-    db.query("DELETE FROM empregados WHERE id = ?", [id], (err) => {
+    db.run("DELETE FROM empregados WHERE id = ?", [id], (err) => {
         if (err) return res.status(500).send("Erro ao excluir")
         res.send("Excluído com sucesso")
     })
@@ -104,7 +133,7 @@ app.delete("/empregados/:id", (req, res) => {
 
 // LIMPAR TODOS
 app.delete("/empregados", (req, res) => {
-    db.query("DELETE FROM empregados", (err) => {
+    db.run("DELETE FROM empregados", [], (err) => {
         if (err) return res.status(500).send("Erro ao limpar")
         res.send("Lista limpa")
     })
@@ -112,27 +141,24 @@ app.delete("/empregados", (req, res) => {
 
 // ================= REGISTROS =================
 
-// REGISTRO INTELIGENTE (SEGURO)
+// REGISTRO INTELIGENTE
 app.post("/registrar-ponto", (req, res) => {
 
     const { id } = req.body
 
-    // 🔒 VALIDAÇÃO
     if (!id) {
         return res.status(400).send("ID do empregado é obrigatório")
     }
 
-    // 🔍 VERIFICA SE EXISTE
-    db.query("SELECT id FROM empregados WHERE id=?", [id], (err, emp) => {
+    db.get("SELECT id FROM empregados WHERE id=?", [id], (err, emp) => {
 
         if (err) return res.status(500).send("Erro no servidor")
 
-        if (emp.length === 0) {
+        if (!emp) {
             return res.status(404).send("Empregado não encontrado")
         }
 
-        // 🔍 ÚLTIMO REGISTRO
-        db.query(
+        db.get(
             "SELECT tipo, data FROM registros WHERE empregado_id=? ORDER BY data DESC LIMIT 1",
             [id],
             (err, result) => {
@@ -141,15 +167,13 @@ app.post("/registrar-ponto", (req, res) => {
 
                 let tipo = "entrada"
 
-                if (result.length > 0) {
+                if (result) {
 
-                    tipo = result[0].tipo === "entrada" ? "saida" : "entrada"
+                    tipo = result.tipo === "entrada" ? "saida" : "entrada"
 
-                    // 🔒 BLOQUEIO 5s (anti duplicidade)
-                    const ultimo = new Date(result[0].data)
+                    const ultimo = new Date(result.data)
                     const agora = new Date()
 
-                    // 🔒 BLOQUEIO INTELIGENTE (1 minuto)
                     const diffMinutos = (agora - ultimo) / 1000 / 60
 
                     if (diffMinutos < 1) {
@@ -157,8 +181,8 @@ app.post("/registrar-ponto", (req, res) => {
                     }
                 }
 
-                db.query(
-                    "INSERT INTO registros(empregado_id,data,tipo) VALUES(?,NOW(),?)",
+                db.run(
+                    "INSERT INTO registros(empregado_id,data,tipo) VALUES(?,datetime('now'),?)",
                     [id, tipo],
                     (err) => {
 
@@ -175,12 +199,12 @@ app.post("/registrar-ponto", (req, res) => {
 // LISTAR REGISTROS
 app.get("/registros-completos", (req, res) => {
 
-    db.query(`
+    db.all(`
         SELECT r.*, e.nome 
         FROM registros r
         JOIN empregados e ON e.id = r.empregado_id
         ORDER BY r.data DESC
-    `, (err, result) => {
+    `, [], (err, result) => {
 
         if (err) return res.status(500).send("Erro")
 
@@ -232,7 +256,7 @@ app.post("/salvar-face", (req, res) => {
 
 // LISTAR FACES
 app.get("/faces", (req, res) => {
-    db.query("SELECT id, nome FROM empregados", (err, result) => {
+    db.all("SELECT id, nome FROM empregados", [], (err, result) => {
         if (err) return res.status(500).send("Erro")
         res.json(result)
     })
@@ -246,13 +270,13 @@ app.post("/validar-senha", (req, res) => {
 
     if (!senha) return res.status(400).send("Senha obrigatória")
 
-    db.query(
+    db.get(
         "SELECT valor FROM config WHERE chave='senha_painel'",
         (err, result) => {
 
             if (err) return res.status(500).send("Erro")
 
-            if (senha === result[0].valor) {
+            if (result && senha === result.valor) {
                 res.send("ok")
             } else {
                 res.status(401).send("Senha inválida")
@@ -267,7 +291,7 @@ app.post("/alterar-senha", (req, res) => {
 
     if (!novaSenha) return res.status(400).send("Senha inválida")
 
-    db.query(
+    db.run(
         "UPDATE config SET valor=? WHERE chave='senha_painel'",
         [novaSenha],
         (err) => {
