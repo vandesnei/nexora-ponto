@@ -53,6 +53,14 @@ async function iniciar() {
 
             try {
 
+                // 🔥 CORREÇÃO AQUI (EVITA 404 QUEBRAR O SISTEMA)
+                const response = await fetch(`/faces/${user.id}.jpg`)
+
+                if (!response.ok) {
+                    console.warn("⚠️ Face não encontrada:", user.id)
+                    continue
+                }
+
                 const img = await faceapi.fetchImage(`/faces/${user.id}.jpg`)
 
                 const detection = await faceapi
