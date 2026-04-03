@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro Facial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 🔵 PADRÃO GLOBAL -->
+    <link rel="stylesheet" href="/topo.css">
+    <link rel="stylesheet" href="/style.css">
+
+    <style>
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .erro {
+            color: red;
+        }
+
+        .ok {
+            color: green;
+        }
+
+        /* MODAL */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        #modal .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 🔵 TOPO -->
+    <div id="topo-container"></div>
+
+    <!-- 📦 CONTEÚDO -->
+    <div class="conteudo">
+
+        <h2>Cadastro Facial</h2>
+
+        <input type="number" id="id" placeholder="ID do empregado">
+
+        <!-- 🎥 CÂMERA PADRÃO -->
+        <div class="camera-box">
+
+            <video id="video" autoplay muted></video>
+            <canvas id="overlay"></canvas>
+
+        </div>
+
+        <div id="status">🔄 Iniciando câmera...</div>
+
+        <button id="btnCapturar" onclick="capturar()" disabled>
+            📸 Salvar rosto
+        </button>
+
+        <canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
+
+    </div>
+
+    <!-- 🔥 MODAL -->
+    <div id="modal">
+        <div class="box">
+
+            <h3>✅ Face cadastrada</h3>
+
+            <button onclick="novaFace()" style="width:100%;margin:10px 0;">
+                📸 Nova Face
+            </button>
+
+            <button onclick="finalizar()" style="width:100%;margin:10px 0;">
+                ✔ Concluir
+            </button>
+
+        </div>
+    </div>
+
+    <!-- 🔵 SCRIPTS -->
+    <script src="/topo.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="/cadastro-face.js"></script>
+
+    <script>
+        const status = document.getElementById("status")
+        const btn = document.getElementById("btnCapturar")
+
+        // 🔄 SISTEMA PRONTO
+        window.addEventListener("load", () => {
+            setTimeout(() => {
+                status.innerText = "✅ Sistema pronto - posicione o rosto"
+                status.className = "ok"
+                btn.disabled = false
+            }, 1500)
+        })
+
+        // 📸 CAPTURA
+        async function capturar() {
+
+            const id = document.getElementById("id").value
+
+            if (!id) {
+                status.innerText = "⚠️ Informe o ID do empregado"
+                status.className = "erro"
+                return
+            }
+
+            status.innerText = "📸 Capturando..."
+            status.className = ""
+
+            try {
+
+                await window.capturarFace()
+
+                status.innerText = "✅ Rosto salvo com sucesso"
+                status.className = "ok"
+
+                document.getElementById("modal").style.display = "flex"
+
+            } catch (e) {
+
+                console.error(e)
+
+                status.innerText = "❌ Erro ao salvar rosto"
+                status.className = "erro"
+            }
+        }
+
+        function novaFace() {
+            document.getElementById("modal").style.display = "none"
+            status.innerText = "🙂 Pronto para nova captura"
+        }
+
+        function finalizar() {
+            window.location.href = "/painel.html"
+        }
+    </script>
+
+</body>
+
+</html>

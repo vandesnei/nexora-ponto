@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Alterar Senha</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 🔵 CSS DO TOPO -->
+    <link rel="stylesheet" href="topo.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6fb;
+            text-align: center;
+        }
+
+        .conteudo {
+            padding-top: 120px;
+        }
+
+        input {
+            padding: 10px;
+            width: 250px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 🔵 TOPO DINÂMICO -->
+    <div id="topo-container"></div>
+
+    <!-- 📦 CONTEÚDO -->
+    <div class="conteudo">
+
+        <h2>🔐 Alterar Senha</h2>
+
+        <input type="password" id="nova" placeholder="Nova senha">
+        <br>
+        <button onclick="salvar()">Salvar</button>
+
+    </div>
+
+    <!-- 🔵 SCRIPT DO TOPO -->
+    <script src="topo.js"></script>
+
+    <!-- 🔥 SCRIPT -->
+    <script>
+        async function salvar() {
+
+            const novaSenha = document.getElementById("nova").value
+
+            if (!novaSenha) {
+                alert("Digite uma senha")
+                return
+            }
+
+            const res = await fetch("/alterar-senha", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ novaSenha })
+            })
+
+            const msg = await res.text()
+            alert(msg)
+        }
+    </script>
+
+</body>
+
+</html>

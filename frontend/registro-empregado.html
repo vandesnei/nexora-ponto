@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registro do Empregado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/topo.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6fb;
+        }
+
+        .conteudo {
+            padding-top: 140px;
+            width: 95%;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .btn-voltar {
+            padding: 10px 15px;
+            background: #2f4a92;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #2f4a92;
+            color: white;
+        }
+
+        .positivo {
+            color: green;
+        }
+
+        .negativo {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="topo-container"></div>
+
+    <div class="conteudo">
+
+        <h2 id="nome">Carregando...</h2>
+
+        <div class="top-bar">
+            <button class="btn-voltar" onclick="voltarLista()">
+                ← Voltar para Lista
+            </button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Entrada</th>
+                    <th>Saída</th>
+                    <th>Atraso</th>
+                    <th>Horas +</th>
+                    <th>Saldo</th>
+                </tr>
+            </thead>
+            <tbody id="tabela"></tbody>
+        </table>
+
+    </div>
+
+    <script src="/topo.js"></script>
+
+    <script>
+        function voltarLista() {
+            window.location.href = "/lista-empregados.html";
+        }
+
+        const urlParams = new URLSearchParams(window.location.search)
+        const id = urlParams.get("id")
+
+        async function carregar() {
+
+            const res = await fetch(`/registros-completos`)
+            const dados = await res.json()
+
+            const tabela = document.getElementById("tabela")
+            tabela.innerHTML = ""
+
+            let registros = dados.filter(r => r.empregado_id == id)
+
+            if (registros.length === 0) {
+                tabela.innerHTML = "<tr><td colspan='6'>Sem registros</td></tr>"
+                return
+            }
+
+            document.getElementById("nome").innerText = registros[0].nome
+
+            const dias = {}
+
+            registros.forEach(r => {
+
+                // 🔥 CORREÇÃO DE FUSO (Brasil)
+                const d = new Date(r.data)
+
+                const dataKey =
+                    d.getFullYear() + "-" +
+                    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+                    String(d.getDate()).padStart(2, "0")
+
+                if (!dias[dataKey]) dias[dataKey] = []
+
+                dias[dataKey].push(r)
+            })
+
+            let saldoTotal = 0
+
+            for (let dataKey in dias) {
+
+                let registrosDia = dias[dataKey]
+
+                // 🔥 ordena por horário
+                registrosDia.sort((a, b) => new Date(a.data) - new Date(b.data))
+
+                let entrada1 = registrosDia[0]
+                let saida1 = registrosDia[1]
+                let entrada2 = registrosDia[2]
+                let saida2 = registrosDia[3]
+
+                let totalHoras = 0
+
+                // 🧠 2 BATIDAS
+                if (registrosDia.length >= 2 && !entrada2) {
+
+                    let e = new Date(entrada1.data)
+                    let s = new Date(saida1.data)
+
+                    totalHoras = (s - e) / 1000 / 60 / 60
+                }
+
+                // 🧠 4 BATIDAS (ALMOÇO)
+                if (registrosDia.length >= 4) {
+
+                    let e1 = new Date(entrada1.data)
+                    let s1 = new Date(saida1.data)
+                    let e2 = new Date(entrada2.data)
+                    let s2 = new Date(saida2.data)
+
+                    let manha = (s1 - e1) / 1000 / 60 / 60
+                    let tarde = (s2 - e2) / 1000 / 60 / 60
+
+                    totalHoras = manha + tarde
+                }
+
+                // 🔥 JORNADA BRASIL
+                let jornada = 8
+
+                // 🔥 TOLERÂNCIA (10 minutos)
+                if (Math.abs(totalHoras - jornada) <= 0.16) {
+                    totalHoras = jornada
+                }
+
+                let saldo = totalHoras - jornada
+                saldoTotal += saldo
+
+                let atraso = saldo < 0 ? saldo.toFixed(2) : "-"
+                let extra = saldo > 0 ? saldo.toFixed(2) : "-"
+
+                let entradaHora = entrada1 ? new Date(entrada1.data) : null
+                let saidaHora = saida2 ? new Date(saida2.data) : new Date(saida1.data)
+
+                tabela.innerHTML += `
+                <tr>
+                    <td>${dataKey.split("-").reverse().join("/")}</td>
+                    <td>${entradaHora ? entradaHora.toLocaleTimeString() : "-"}</td>
+                    <td>${saidaHora ? saidaHora.toLocaleTimeString() : "-"}</td>
+                    <td class="negativo">${atraso}</td>
+                    <td class="positivo">${extra}</td>
+                    <td class="${saldoTotal >= 0 ? 'positivo' : 'negativo'}">
+                        ${saldoTotal.toFixed(2)}h
+                    </td>
+                </tr>
+                `
+            }
+        }
+
+        carregar()
+    </script>
+
+</body>
+
+</html>

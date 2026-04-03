@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Acesso ao Painel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 🔵 CSS DO TOPO -->
+    <link rel="stylesheet" href="topo.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6fb;
+            text-align: center;
+        }
+
+        .conteudo {
+            padding-top: 120px;
+        }
+
+        input {
+            padding: 10px;
+            width: 250px;
+            text-align: center;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 🔵 TOPO DINÂMICO -->
+    <div id="topo-container"></div>
+
+    <!-- 📦 CONTEÚDO -->
+    <div class="conteudo">
+
+        <h2>🔐 Acesso ao Painel</h2>
+
+        <input type="password" id="senha" placeholder="Digite a senha">
+        <br>
+        <button onclick="entrar()">Entrar</button>
+
+    </div>
+
+    <!-- 🔵 SCRIPT DO TOPO -->
+    <script src="topo.js"></script>
+
+    <!-- 🔥 SCRIPT -->
+    <script>
+        async function entrar() {
+
+            const senha = document.getElementById("senha").value
+
+            if (!senha) {
+                alert("Digite a senha")
+                return
+            }
+
+            const res = await fetch("/validar-senha", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ senha })
+            })
+
+            if (res.ok) {
+                window.location.href = "painel.html"
+            } else {
+                alert("Senha incorreta")
+            }
+        }
+    </script>
+
+</body>
+
+</html>

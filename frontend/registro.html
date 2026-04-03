@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico de Registros</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/topo.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6fb;
+        }
+
+        .conteudo {
+            padding-top: 120px;
+            width: 90%;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #2f4a92;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f5ff;
+        }
+
+        .entrada {
+            color: green;
+            font-weight: bold;
+        }
+
+        .saida {
+            color: red;
+            font-weight: bold;
+        }
+
+        .vazio {
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="topo-container"></div>
+
+    <div class="conteudo">
+
+        <h2>🕒 Histórico de Registros</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Empregado</th>
+                    <th>Tipo</th>
+                    <th>Data/Hora</th>
+                    <th>Horas Trabalhadas</th>
+                </tr>
+            </thead>
+            <tbody id="tabela"></tbody>
+        </table>
+
+    </div>
+
+    <script src="/topo.js"></script>
+
+    <script>
+
+        let cacheDados = ""
+
+        // 🚀 CARREGAR
+        async function carregar() {
+
+            try {
+                const res = await fetch("/registros-completos")
+
+                if (!res.ok) throw new Error()
+
+                const dados = await res.json()
+
+                atualizarTela(dados)
+
+            } catch (erro) {
+
+                const dadosLocal = JSON.parse(localStorage.getItem("pontos")) || []
+
+                atualizarTela(dadosLocal)
+            }
+        }
+
+        // 🧠 CONVERTER DATA CORRETAMENTE
+        function parseData(data, hora) {
+
+            if (!data || !hora) return null
+
+            const [dia, mes, ano] = data.split("/")
+            return new Date(`${ano}-${mes}-${dia}T${hora}`)
+        }
+
+        // 🧠 CALCULAR HORAS
+        function calcularHoras(registros, nome, data) {
+
+            const registrosDia = registros
+                .filter(r => r.nome === nome && r.data === data)
+                .sort((a, b) => parseData(a.data, a.hora) - parseData(b.data, b.hora))
+
+            let totalMs = 0
+
+            for (let i = 0; i < registrosDia.length; i += 2) {
+
+                const entrada = registrosDia[i]
+                const saida = registrosDia[i + 1]
+
+                if (entrada && saida) {
+
+                    const inicio = parseData(entrada.data, entrada.hora)
+                    const fim = parseData(saida.data, saida.hora)
+
+                    if (inicio && fim) {
+                        totalMs += (fim - inicio)
+                    }
+                }
+            }
+
+            const horas = Math.floor(totalMs / 3600000)
+            const minutos = Math.floor((totalMs % 3600000) / 60000)
+
+            return `${horas}h ${minutos}min`
+        }
+
+        // 🔄 ATUALIZA SEM PISCAR
+        function atualizarTela(dados) {
+
+            const jsonAtual = JSON.stringify(dados)
+
+            if (jsonAtual === cacheDados) return // 👈 evita piscar
+
+            cacheDados = jsonAtual
+
+            const tabela = document.getElementById("tabela")
+            tabela.innerHTML = ""
+
+            if (!dados.length) {
+                tabela.innerHTML = `
+            <tr>
+                <td colspan="4" class="vazio">
+                    Nenhum registro encontrado
+                </td>
+            </tr>
+        `
+                return
+            }
+
+            dados.slice().reverse().forEach(reg => {
+
+                const tipoClasse = reg.tipo === "saida" ? "saida" : "entrada"
+
+                const tipoTexto = reg.tipo === "saida"
+                    ? "🔴 Saída"
+                    : "🟢 Entrada"
+
+                const dataObj = parseData(reg.data, reg.hora)
+
+                const dataFormatada = dataObj
+                    ? dataObj.toLocaleString()
+                    : "-"
+
+                const horas = calcularHoras(dados, reg.nome, reg.data)
+
+                const linha = `
+            <tr>
+                <td>${reg.nome}</td>
+                <td class="${tipoClasse}">${tipoTexto}</td>
+                <td>${dataFormatada}</td>
+                <td>${horas}</td>
+            </tr>
+        `
+
+                tabela.innerHTML += linha
+            })
+        }
+
+        // 🚀 START
+        carregar()
+
+        // 🔄 Atualiza sem piscar
+        setInterval(carregar, 5000)
+
+    </script>
+
+</body>
+
+</html>

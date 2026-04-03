@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nexora Ponto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 🔵 CSS GLOBAL -->
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/topo.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6fb;
+        }
+
+        /* 📦 CONTEÚDO */
+        .conteudo {
+            padding-top: 120px;
+            text-align: center;
+        }
+
+        .titulo-principal {
+            font-size: 22px;
+            margin-bottom: 30px;
+        }
+
+        /* 🔥 ÍCONES */
+        .menu {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            flex-wrap: wrap;
+        }
+
+        .menu-item {
+            cursor: pointer;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .menu-item img {
+            width: 120px;
+        }
+
+        /* ✨ HOVER */
+        .menu-item:hover {
+            transform: scale(1.1);
+            filter: brightness(1.1);
+        }
+
+        /* 📱 MOBILE */
+        @media (max-width: 768px) {
+            .menu {
+                gap: 40px;
+            }
+
+            .menu-item img {
+                width: 90px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 🔵 TOPO DINÂMICO -->
+    <div id="topo-container"></div>
+
+    <!-- 📦 CONTEÚDO -->
+    <div class="conteudo">
+
+        <div class="titulo-principal">
+            Sistema de Controle de Ponto
+        </div>
+
+        <div class="menu">
+
+            <!-- 🎓 REGISTRAR -->
+            <div class="menu-item" onclick="irParaReconhecimento()">
+                <img src="/img/chapeu.png">
+            </div>
+
+            <!-- ⚙️ GESTÃO -->
+            <div class="menu-item" onclick="irParaPainel()">
+                <img src="/img/engrenagem.png">
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- 🔵 SCRIPT DO TOPO -->
+    <script src="/topo.js"></script>
+
+    <!-- 🔥 SCRIPT -->
+    <script>
+        function irParaReconhecimento() {
+            window.location.href = "/reconhecimento.html"
+        }
+
+        function irParaPainel() {
+            window.location.href = "/painel.html"
+        }
+    </script>
+
+</body>
+
+</html>

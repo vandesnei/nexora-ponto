@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nexora Ponto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 🔵 CSS DO TOPO -->
+    <link rel="stylesheet" href="/topo.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="/favicon.ico">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6fb;
+        }
+
+        .conteudo {
+            padding-top: 120px;
+            text-align: center;
+        }
+
+        #area-reconhecimento {
+            margin-top: 20px;
+        }
+
+        .camera-box {
+            position: relative;
+            width: 400px;
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            object-fit: cover;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .moldura {
+            position: absolute;
+            width: 220px;
+            height: 260px;
+            border: 3px solid #00ff88;
+            border-radius: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 🔵 TOPO -->
+    <div id="topo-container"></div>
+
+    <!-- 📦 CONTEÚDO -->
+    <div class="conteudo">
+
+        <h3>Aproxime seu rosto</h3>
+
+        <div id="area-reconhecimento">
+
+            <div class="camera-box">
+                <video id="video" autoplay muted></video>
+                <canvas id="canvas"></canvas>
+                <div class="moldura"></div>
+            </div>
+
+            <div id="status">Iniciando...</div>
+
+        </div>
+
+    </div>
+
+    <!-- 🔵 SCRIPT DO TOPO -->
+    <script src="/topo.js"></script>
+
+    <!-- 🤖 FACE API -->
+    <script src="/js/face-api.min.js"></script>
+
+    <!-- 🚀 SCRIPT -->
+    <script src="/reconhecimento.js"></script>
+
+</body>
+
+</html>

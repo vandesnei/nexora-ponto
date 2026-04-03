@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Gestão - Nexora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 🔵 CSS GLOBAL -->
+    <link rel="stylesheet" href="/topo.css">
+    <link rel="stylesheet" href="/style.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6fb;
+        }
+
+        /* 📦 CONTEÚDO */
+        .conteudo {
+            padding-top: 120px;
+            text-align: center;
+        }
+
+        .titulo-principal {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        /* 🔥 GRID DOS CARDS */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: auto;
+            padding: 0 20px;
+        }
+
+        /* 🔥 AJUSTE FINO DOS CARDS */
+        .card h3 {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- 🔵 TOPO -->
+    <div id="topo-container"></div>
+
+    <!-- 📦 CONTEÚDO -->
+    <div class="conteudo">
+
+        <div class="titulo-principal">
+            Painel de Gestão
+        </div>
+
+        <div class="cards">
+
+            <div class="card" onclick="irCadastroFace()">
+                <h3>📸 Cadastro de Faces</h3>
+                <p>Registrar rosto dos empregados</p>
+            </div>
+
+            <div class="card" onclick="irEmpregado()">
+                <h3>👤 Cadastro de Empregados</h3>
+                <p>Gerenciar funcionários</p>
+            </div>
+
+            <div class="card" onclick="irListaEmpregados()">
+                <h3>📋 Lista de Empregados</h3>
+                <p>Visualizar funcionários cadastrados</p>
+            </div>
+
+            <div class="card" onclick="irReconhecimento()">
+                <h3>🤖 Reconhecimento</h3>
+                <p>Testar reconhecimento facial</p>
+            </div>
+
+            <div class="card" onclick="irSenha()">
+                <h3>🔐 Gestão de Senha</h3>
+                <p>Alterar senha do sistema</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- 🔵 TOPO SCRIPT -->
+    <script src="/topo.js"></script>
+
+    <!-- 🔥 NAVEGAÇÃO -->
+    <script>
+        function irCadastroFace() {
+            window.location.href = "/cadastro-face.html"
+        }
+
+        function irEmpregado() {
+            window.location.href = "/empregado.html"
+        }
+
+        function irListaEmpregados() {
+            window.location.href = "/lista-empregados.html"
+        }
+
+        function irReconhecimento() {
+            window.location.href = "/reconhecimento.html"
+        }
+
+        function irSenha() {
+            window.location.href = "/senha.html"
+        }
+    </script>
+
+</body>
+
+</html>

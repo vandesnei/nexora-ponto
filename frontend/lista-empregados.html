@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Empregados</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="topo.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6fb;
+        }
+
+        .conteudo {
+            padding-top: 120px;
+            width: 90%;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .acoes {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .acoes button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-limpar {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-limpar:hover {
+            background: #dc2626;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #2f4a92;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f5ff;
+            cursor: pointer;
+        }
+
+        img {
+            border-radius: 50%;
+        }
+
+        .btn-excluir {
+            background: #ef4444;
+            color: white;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-excluir:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="topo-container"></div>
+
+    <div class="conteudo">
+
+        <h2>Lista de Empregados</h2>
+
+        <div class="acoes">
+            <button class="btn-limpar" onclick="limparTudo()">🔥 Limpar Lista</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Matrícula</th>
+                    <th>Cargo</th>
+                    <th>Foto</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabela"></tbody>
+        </table>
+
+    </div>
+
+    <script src="topo.js"></script>
+
+    <script>
+        async function carregar() {
+
+            try {
+
+                const res = await fetch("/empregados")
+                const dados = await res.json()
+
+                const tabela = document.getElementById("tabela")
+                tabela.innerHTML = ""
+
+                dados.forEach(emp => {
+
+                    const linha = document.createElement("tr")
+
+                    linha.innerHTML = `
+                        <td>${emp.id}</td>
+                        <td>${emp.nome}</td>
+                        <td>${emp.matricula || "-"}</td>
+                        <td>${emp.cargo || "-"}</td>
+                        <td>
+                            ${emp.foto
+                            ? `<img src="${emp.foto}" width="50" onerror="this.outerHTML='Sem foto'">`
+                            : "Sem foto"}
+                        </td>
+                        <td>
+                            <button class="btn-excluir">
+                                🗑️
+                            </button>
+                        </td>
+                    `
+
+                    // 🔥 clique na linha
+                    linha.addEventListener("click", () => {
+                        abrir(emp.id)
+                    })
+
+                    // 🔥 botão excluir isolado
+                    linha.querySelector(".btn-excluir").addEventListener("click", (e) => {
+                        e.stopPropagation()
+                        excluir(emp.id)
+                    })
+
+                    tabela.appendChild(linha)
+                })
+
+            } catch (erro) {
+                alert("Erro ao carregar empregados")
+                console.error(erro)
+            }
+        }
+
+        function abrir(id) {
+            window.location.href = `/registro-empregado.html?id=${id}`
+        }
+
+        async function excluir(id) {
+
+            if (!confirm("Deseja excluir este empregado?")) return
+
+            try {
+                await fetch(`/empregados/${id}`, {
+                    method: "DELETE"
+                })
+
+                carregar()
+
+            } catch {
+                alert("Erro ao excluir")
+            }
+        }
+
+        async function limparTudo() {
+
+            if (!confirm("⚠️ Isso apagará TODOS os empregados. Continuar?")) return
+
+            try {
+                await fetch("/empregados", {
+                    method: "DELETE"
+                })
+
+                carregar()
+
+            } catch {
+                alert("Erro ao limpar lista")
+            }
+        }
+
+        carregar()
+    </script>
+
+</body>
+
+</html>
