@@ -66,6 +66,46 @@
 
 <body>
 
+
+    <script>
+        async function validarAcesso() {
+
+            const senha = prompt("🔐 Digite a senha para acessar o sistema")
+
+            if (!senha) {
+                window.location.href = "about:blank"
+                return
+            }
+
+            try {
+                const res = await fetch("/validar-senha", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ senha })
+                })
+
+                if (!res.ok) {
+                    alert("❌ Senha incorreta")
+                    validarAcesso()
+                } else {
+                    // 🔥 AQUI ENTRA O LOCALSTORAGE
+                    localStorage.setItem("acesso", "true")
+                }
+
+            } catch {
+                alert("Erro ao validar senha")
+            }
+        }
+
+        // 🔥 VALIDAÇÃO (EVITA PEDIR TODA HORA)
+        if (localStorage.getItem("acesso") !== "true") {
+            validarAcesso()
+        }
+    </script>
+
+
     <!-- 🔵 TOPO DINÂMICO -->
     <div id="topo-container"></div>
 
