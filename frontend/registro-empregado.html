@@ -204,17 +204,17 @@
                     : (saida1 ? new Date(saida1.data) : null)
 
                 tabela.innerHTML += `
-                <tr>
-                    <td>${dataKey.split("-").reverse().join("/")}</td>
-                    <td>${entradaHora ? entradaHora.toLocaleTimeString() : "-"}</td>
-                    <td>${saidaHora ? saidaHora.toLocaleTimeString() : "-"}</td>
-                    <td class="negativo">${atraso}</td>
-                    <td class="positivo">${extra}</td>
-                    <td class="${saldoTotal >= 0 ? 'positivo' : 'negativo'}">
-                        ${saldoTotal.toFixed(2)}h
-                    </td>
-                </tr>
-                `
+<tr>
+    <td>${dataKey.split("-").reverse().join("/")}</td>
+    <td>${entradaHora ? entradaHora.toLocaleTimeString("pt-BR", { timeZone: "America/Manaus" }) : "-"}</td>
+    <td>${saidaHora ? saidaHora.toLocaleTimeString("pt-BR", { timeZone: "America/Manaus" }) : "-"}</td>
+    <td class="negativo">${atraso}</td>
+    <td class="positivo">${extra}</td>
+    <td class="${saldoTotal >= 0 ? 'positivo' : 'negativo'}">
+        ${saldoTotal.toFixed(2)}h
+    </td>
+</tr>
+`
             }
         }
 
