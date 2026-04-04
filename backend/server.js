@@ -259,11 +259,6 @@ app.post("/alterar-senha", (req, res) => {
     }
 })
 
-// 🔥 RESET TEMPORÁRIO DE SENHA
-db.prepare(`
-INSERT OR REPLACE INTO config (chave, valor)
-VALUES ('senha_painel', '1234')
-`).run()
 
 // ================= START =================
 const PORT = process.env.PORT || 3000
